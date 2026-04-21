@@ -17,7 +17,7 @@ class DatProcessor:
         except Exception as e:
             print(f"❌ Error al abrir el archivo: {e}")
 
-
+  
     # def find_by_BIN(self, BIN_target: str) -> Optional[str]:
     #     """
     #     Busca un registro basándose en el IBT (caracteres 1 al 9).
