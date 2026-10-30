@@ -1,6 +1,7 @@
 from typing import Optional, List, Dict
 from src.database.file_dao import FileDAO
 from config.layouts import ARCHIVO_MAE
+from datetime import datetime
 
 class SearchService:
     """Lógica de negocio para procesar y buscar dentro de los registros."""
@@ -11,7 +12,6 @@ class SearchService:
 
     def get_field_coordinates(self,line:str) -> List[Dict[int, int]]:
         """Analiza la estructura de separadores ~{< en la primera línea."""
-
 
         if not line:
             return []
@@ -50,6 +50,7 @@ class SearchService:
 
                 
                 space_delimiters = self.get_field_coordinates(line)
+                #print(f"Delimitadores encontrados{len(space_delimiters)}")
   
                 val_bin = line[space_delimiters[0]['inicio']-ARCHIVO_MAE['campos']['BIN']: space_delimiters[0]['inicio']]
                 val_tar = line[space_delimiters[0]['fin']+1 : space_delimiters[1]['inicio']]
@@ -58,7 +59,9 @@ class SearchService:
                 val_grupo = line[space_delimiters[29]['fin']+1 : space_delimiters[30]['inicio']]
                 val_est = line[space_delimiters[32]['fin']+1 : space_delimiters[33]['inicio']]
                 val_fec = line[space_delimiters[44]['fin']+1 : space_delimiters[45]['inicio']]
+                val_iden = line[space_delimiters[78]['fin']+1 : space_delimiters[79]['inicio']]
 
+                
 
                 if bin_target and val_bin != bin_target:
                     continue
@@ -69,19 +72,26 @@ class SearchService:
                 if est_target and val_est != est_target:
                     continue
 
+                fecha1 = datetime.strptime(val_fec, "%Y%m%d")
+                fecha2 = datetime.strptime( "20280501", "%Y%m%d")
+             
+                if fecha2 > fecha1:
+                    continue
+
                 resultados.append({
-                    "bin": val_bin,
-                    "tar": val_tar,
-                    "tipo": val_tipo,
-                    "afinidad": val_afi,
+                    "bin": val_bin[1:9],
+                    "tar": val_tar[7:16],
+                    "tipo": val_tipo[1:3],
+                    "afinidad": val_afi[3:5],
                     "estado": val_est,
-                    "grupo": val_grupo,
-                    "fecha":val_fec
+                    "grupo": val_grupo[1:3],
+                    "fecha":val_fec,
+                    "identificacion":val_iden[0:13]
                 })
 
                 
-                if len(resultados) >= 30:
-                    print("⚠️ Se alcanzó el límite de 30 resultados.")
+                if len(resultados) >= 20:
+                    print("⚠️ Se alcanzó el límite de 20 resultados.")
                     break
 
             return resultados

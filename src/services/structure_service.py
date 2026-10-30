@@ -51,7 +51,7 @@ class StructureService:
         for i, delim in enumerate(delimiters):
             dato = line[puntero_inicio : delim["inicio"]]
             estructura.append({
-                "campo": f"{i}".zfill(3),
+                "campo": f"{i+1}".zfill(3),
                 "dato": dato,
                 "longitud": len(dato)
             })
@@ -60,7 +60,7 @@ class StructureService:
         
         ultimo_dato = line[puntero_inicio:]
         estructura.append({
-            "campo": f"{len(delimiters)}".zfill(3),
+            "campo": f"{len(delimiters)+1}".zfill(3),
             "dato": ultimo_dato,
             "longitud": len(ultimo_dato)
         })
@@ -68,6 +68,50 @@ class StructureService:
         return estructura
 
 
+    def analizador_linea_a_linea(self):
+
+        """
+        Valida que todos los registros tengan la misma cantidad de campos
+        que la primera línea del archivo.
+
+        Retorna únicamente los registros con inconsistencias.
+        """
+
+        stream = self.dao.get_stream()
+        delimiter = ARCHIVO_MAE["delimiter"]
+
+        primera_linea = next(stream, None)
+
+        if not primera_linea:
+            return {
+                "total_registros": 0,
+                "errores": []
+            }
+
+        delimitadores_esperados = primera_linea.count(delimiter)
+
+        total = 1
+        errores = []
+
+        for numero_registro, linea in enumerate(stream, start=2):
+
+            total += 1
+
+            delimitadores_actuales = linea.count(delimiter)
+
+            if delimitadores_actuales != delimitadores_esperados:
+
+                errores.append({
+                    "registro": numero_registro,
+                    "campos": delimitadores_actuales + 1
+                })
+
+        return {
+            "total_registros": total,
+            "campos_esperados": delimitadores_esperados + 1,
+            "total_errores": len(errores),
+            "errores": errores
+        }
             
 
 
